@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upcoming Events</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050716;
+      --bg-card: #101322;
+      --bg-card-hover: #171b2c;
+      --accent: #4f8cff;
+      --accent-soft: rgba(79, 140, 255, 0.15);
+      --text: #ffffff;
+      --text-soft: #a4abc4;
+      --border: #262a3e;
+
+      --tag-irl: #ff6b6b;
+      --tag-virtual: #8b5cf6;
+      --tag-radio: #22c55e;
+
+      --status-live: #ef4444;
+      --status-upcoming: #22c55e;
+      --status-past: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #15192e 0, #050716 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 16px 56px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 40px;
+      letter-spacing: 0.06em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .top-row {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .tabs {
+      display: inline-flex;
+      padding: 4px;
+      background: rgba(10, 12, 25, 0.9);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    .tab {
+      border: none;
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .tab.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .tab:not(.active):hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .top-row-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .time-info {
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .time-info strong {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: rgba(10, 12, 25, 0.9);
+    }
+
+    .lang-btn {
+      border: none;
+      padding: 4px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-soft);
+      transition: 0.15s;
+    }
+
+    .lang-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .lang-btn:not(.active):hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* Grid */
+    .grid {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 20px 22px;
+      display: flex;
+      gap: 24px;
+      transition: 0.18s;
+      position: relative;
+      overflow: hidden;
+
+      --card-bg-image: none;
+      background-image: none;
+
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .card.appear {
+      animation: fadeInUp 0.35s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card.has-image {
+      background-image: var(--card-bg-image);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .card.has-image::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        rgba(5, 7, 22, 0.96) 0%,
+        rgba(5, 7, 22, 0.94) 35%,
+        rgba(5, 7, 22, 0.85) 100%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at top left,
+        rgba(79, 140, 255, 0.16),
+        transparent 55%
+      );
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 0;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(79, 140, 255, 0.5);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-left,
+    .card-right {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-left {
+      width: 64px;
+      padding-right: 18px;
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-day {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .card-month {
+      margin-top: 4px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .card-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .status-badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text-soft);
+      flex-shrink: 0;
+    }
+
+    .status-live {
+      background: var(--status-live);
+      border-color: rgba(248, 113, 113, 0.8);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.55);
+    }
+
+    .status-upcoming {
+      background: rgba(34, 197, 94, 0.18);
+      border-color: rgba(34, 197, 94, 0.55);
+      color: #bbf7d0;
+    }
+
+    .status-past {
+      background: rgba(75, 85, 99, 0.25);
+      border-color: rgba(75, 85, 99, 0.6);
+      color: #e5e7eb;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-soft);
+    }
+
+    .pill-irl {
+      background: rgba(255, 107, 107, 0.18);
+      border-color: rgba(255, 107, 107, 0.4);
+      color: var(--tag-irl);
+    }
+
+    .pill-virtual {
+      background: rgba(139, 92, 246, 0.18);
+      border-color: rgba(139, 92, 246, 0.4);
+      color: var(--tag-virtual);
+    }
+
+    .pill-radio {
+      background: rgba(34, 197, 94, 0.18);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: var(--tag-radio);
+    }
+
+    .pill-location {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: transparent;
+    }
+
+    .pill-tag {
+      border-color: rgba(148, 163, 184, 0.5);
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-soft);
+      line-height: 1.5;
+      margin-top: 6px;
+      max-height: 5.4em;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-footer-left {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 6px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      border-color: rgba(79, 140, 255, 0.9);
+      background: linear-gradient(
+        135deg,
+        rgba(79, 140, 255, 0.9),
+        rgba(79, 184, 255, 0.9)
+      );
+      color: #050716;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+      background: linear-gradient(
+        135deg,
+        rgba(79, 140, 255, 1),
+        rgba(79, 184, 255, 1)
+      );
+    }
+
+    .btn-small {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+
+    .interest {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .interest-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-interest {
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .btn-interest:hover {
+      background: rgba(30, 64, 175, 0.9);
+      border-color: rgba(129, 140, 248, 0.9);
+    }
+
+    .btn-interest.active {
+      background: rgba(79, 140, 255, 0.95);
+      border-color: rgba(59, 130, 246, 1);
+      color: #050716;
+    }
+
+    .loader,
+    .empty {
+      margin-top: 40px;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding-top: 28px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .card {
+        flex-direction: column;
+        padding: 18px 16px;
+      }
+
+      .card-left {
+        width: auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        padding-right: 0;
+        padding-bottom: 10px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+
+      .card-right {
+        padding-top: 4px;
+      }
+
+      .card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .card-actions {
+        justify-content: flex-start;
+      }
+
+      .interest {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .top-row-bottom {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 data-i18n="title">Upcoming Events</h1>
+      <p class="subtitle" data-i18n="subtitle">
+        Join us for live performances, DJ sets, and virtual experiences.
+      </p>
+
+      <div class="top-row">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-type="" data-i18n="tabAll">All</button>
+          <button class="tab" data-type="irl" data-i18n="tabIrl">IRL</button>
+          <button class="tab" data-type="virtual" data-i18n="tabVirtual">Virtual</button>
+          <button class="tab" data-type="radio" data-i18n="tabRadio">Radio</button>
+          <button class="tab" data-type="other" data-i18n="tabOther">Other</button>
+        </div>
+
+        <div class="top-row-bottom">
+          <div class="time-info">
+            <span data-i18n="timeInfoPrefix">Times shown in</span>
+            <strong id="tzLabel"></strong>
+          </div>
+
+          <div class="lang-switch" id="langSwitch">
+            <button class="lang-btn" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="ru">RU</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="loader" class="loader">Loading events…</div>
+    <div id="grid" class="grid" style="display: none;"></div>
+    <div id="empty" class="empty" style="display: none;">
+      No events for this category yet.
+    </div>
+  </div>
+
+  <script>
+    // ====== I18N ======
+    const i18n = {
+      en: {
+        title: "Upcoming Events",
+        subtitle: "Join us for live performances, DJ sets, and virtual experiences.",
+        tabAll: "All",
+        tabIrl: "IRL",
+        tabVirtual: "Virtual",
+        tabRadio: "Radio",
+        tabOther: "Other",
+        timeInfoPrefix: "Times shown in",
+        loading: "Loading events…",
+        empty: "No events for this category yet.",
+        error: "Error loading events.",
+        status_live: "LIVE NOW",
+        status_upcoming: "UPCOMING",
+        status_past: "ENDED",
+        status_startsIn: "Starts in",
+        status_started: "Started",
+        status_ended: "Ended",
+        ago: "ago",
+        startsAt: "Starts at",
+        noDescription: "No description",
+        going: "going",
+        interested: "interested",
+        btnGoing: "I'm going",
+        btnInterested: "Interested",
+        btnDiscord: "Discord"
+      },
+      ru: {
+        title: "Ближайшие мероприятия",
+        subtitle: "Присоединяйтесь к живым выступлениям, DJ-сетам и виртуальным ивентам.",
+        tabAll: "Все",
+        tabIrl: "IRL",
+        tabVirtual: "Виртуальные",
+        tabRadio: "Радио",
+        tabOther: "Другое",
+        timeInfoPrefix: "Время показано в зоне",
+        loading: "Загружаем мероприятия…",
+        empty: "Для этой категории пока нет мероприятий.",
+        error: "Ошибка загрузки мероприятий.",
+        status_live: "СЕЙЧАС ИДЁТ",
+        status_upcoming: "СКОРО",
+        status_past: "ЗАВЕРШЕНО",
+        status_startsIn: "Начнётся через",
+        status_started: "Началось",
+        status_ended: "Закончилось",
+        ago: "назад",
+        startsAt: "Начало в",
+        noDescription: "Описание отсутствует",
+        going: "пойдут",
+        interested: "заинтересованы",
+        btnGoing: "Я пойду",
+        btnInterested: "Интересно",
+        btnDiscord: "Discord"
+      }
+    };
+
+    let currentLang = localStorage.getItem("eventsLang") || "en";
+    let currentType = "";
+
+    const tabs = document.querySelectorAll(".tab");
+    const grid = document.getElementById("grid");
+    const loader = document.getElementById("loader");
+    const empty = document.getElementById("empty");
+    const tzLabel = document.getElementById("tzLabel");
+    const langButtons = document.querySelectorAll(".lang-btn");
+
+    // timezone label
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local time";
+    tzLabel.textContent = tz;
+
+    function applyStaticTranslations() {
+      const dict = i18n[currentLang];
+
+      document.querySelector('[data-i18n="title"]').textContent = dict.title;
+      document.querySelector('[data-i18n="subtitle"]').textContent = dict.subtitle;
+
+      document.querySelector('[data-i18n="tabAll"]').textContent = dict.tabAll;
+      document.querySelector('[data-i18n="tabIrl"]').textContent = dict.tabIrl;
+      document.querySelector('[data-i18n="tabVirtual"]').textContent = dict.tabVirtual;
+      document.querySelector('[data-i18n="tabRadio"]').textContent = dict.tabRadio;
+      document.querySelector('[data-i18n="tabOther"]').textContent = dict.tabOther;
+
+      document.querySelector('[data-i18n="timeInfoPrefix"]').textContent =
+        dict.timeInfoPrefix;
+
+      loader.textContent = dict.loading;
+      empty.textContent = dict.empty;
+
+      // lang buttons active state
+      langButtons.forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.lang === currentLang);
+      });
+    }
+
+    // ====== Утилиты времени / статуса ======
+    function formatDateParts(isoString) {
+      if (!isoString) {
+        return { day: "--", month: "" };
+      }
+      const d = new Date(isoString);
+      const day = d.toLocaleDateString(undefined, { day: "2-digit" });
+      const month = d
+        .toLocaleDateString(undefined, { month: "short" })
+        .toUpperCase();
+      return { day, month };
+    }
+
+    function formatTime(isoString) {
+      if (!isoString) return "";
+      const d = new Date(isoString);
+      return d.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function formatDelta(ms) {
+      const sec = Math.max(0, Math.floor(ms / 1000));
+      const min = Math.floor(sec / 60);
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+
+      if (h > 0) return `${h}h ${m}m`;
+      if (m > 0) return `${m}m`;
+      return "a few seconds";
+    }
+
+    function getStatusInfo(startIso, endIso) {
+      if (!startIso) {
+        return { code: "upcoming", ms: 0 };
+      }
+      const now = Date.now();
+      const startMs = new Date(startIso).getTime();
+      const endMs = endIso ? new Date(endIso).getTime() : startMs + 3 * 3600_000;
+
+      if (now < startMs) {
+        const diff = startMs - now;
+        return { code: "upcoming", ms: diff };
+      }
+      if (now >= startMs && now <= endMs) {
+        const diff = now - startMs;
+        return { code: "live", ms: diff };
+      }
+      const diff = now - endMs;
+      return { code: "past", ms: diff };
+    }
+
+    // ====== Интерес (движок) ======
+    async function sendInterest(eventId, action) {
+      const key = `event_interest_${eventId}_${action}`;
+      if (localStorage.getItem(key)) {
+        return null;
+      }
+
+      const res = await fetch(`/api/events/${eventId}/interest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action })
+      });
+
+      if (!res.ok) return null;
+
+      localStorage.setItem(key, "1");
+      return res.json();
+    }
+
+    async function loadEvents(type = "") {
+      currentType = type;
+      const dict = i18n[currentLang];
+
+      loader.style.display = "block";
+      loader.textContent = dict.loading;
+      grid.style.display = "none";
+      empty.style.display = "none";
+      grid.innerHTML = "";
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const force = params.get("force") === "1";
+
+        const url = type
+          ? `/api/events?type=${encodeURIComponent(type)}${
+              force ? "&force=1" : ""
+            }`
+          : `/api/events${force ? "?force=1" : ""}`;
+
+        const res = await fetch(url);
+        let events = await res.json();
+
+        loader.style.display = "none";
+
+        if (!Array.isArray(events)) {
+          empty.style.display = "block";
+          empty.textContent = dict.error;
+          return;
+        }
+
+        // Сервер уже не отдаёт past, но на всякий случай ещё раз отфильтруем
+        events = events.filter((ev) => {
+          const s = ev.status?.code || "upcoming";
+          return s !== "past";
+        });
+
+        if (!events.length) {
+          empty.style.display = "block";
+          empty.textContent = dict.empty;
+          return;
+        }
+
+        grid.style.display = "grid";
+
+        for (const ev of events) {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          if (ev.image) {
+            card.classList.add("has-image");
+            card.style.setProperty("--card-bg-image", `url('${ev.image}')`);
+          }
+
+          const { day, month } = formatDateParts(ev.start);
+          const statusInfo = getStatusInfo(ev.start, ev.end);
+
+          const statusKey = `status_${statusInfo.code}`;
+          const statusLabel =
+            dict[statusKey] || statusInfo.code.toUpperCase();
+
+          const statusClass =
+            statusInfo.code === "live"
+              ? "status-live"
+              : statusInfo.code === "past"
+              ? "status-past"
+              : "status-upcoming";
+
+          const typeTag = (function () {
+            if (ev.type === "irl")
+              return { text: "IRL", className: "pill-irl" };
+            if (ev.type === "virtual")
+              return {
+                text: currentLang === "ru" ? "Виртуальное" : "Virtual",
+                className: "pill-virtual"
+              };
+            if (ev.type === "radio")
+              return {
+                text: currentLang === "ru" ? "Радио" : "Radio",
+                className: "pill-radio"
+              };
+            if (ev.type === "other")
+              return {
+                text: currentLang === "ru" ? "Другое" : "Other",
+                className: ""
+              };
+            return null;
+          })();
+
+          const title = ev.name || "Untitled event";
+
+          // описание: убираем ссылки и хэштеги только на фронте
+          let cleanDesc = ev.description || "";
+          cleanDesc = cleanDesc.replace(/https?:\/\/[^\s]+/g, "");
+          cleanDesc = cleanDesc.replace(/#\w+/g, "");
+          cleanDesc = cleanDesc.trim();
+
+          const desc =
+            cleanDesc ||
+            `<i style="color: var(--text-soft);">${dict.noDescription}</i>`;
+
+          const startTimeStr = formatTime(ev.start);
+
+          const stats = ev.stats || { going: 0, interested: 0 };
+          const going = stats.going || 0;
+          const interested = stats.interested || 0;
+
+          // линки/платформы уже есть в ev.links
+          let actionsHtml = "";
+          if (Array.isArray(ev.links) && ev.links.length > 0) {
+            actionsHtml += ev.links
+              .map((link, index) => {
+                const isPrimary =
+                  index === 0 &&
+                  (["YouTube", "Twitch", "Radio", "Spotify"].includes(
+                    link.label
+                  ));
+                return `
+                  <a class="btn ${isPrimary ? "btn-primary" : ""}"
+                     href="${link.url}"
+                     target="_blank" rel="noreferrer">
+                    ${link.label}
+                  </a>
+                `;
+              })
+              .join("");
+          }
+
+          if (ev.link && ev.link !== "#") {
+            actionsHtml += `
+              <a class="btn btn-small"
+                 href="${ev.link}"
+                 target="_blank"
+                 rel="noreferrer">
+                ${dict.btnDiscord}
+              </a>
+            `;
+          }
+
+          // текст под статусом (starts in / started / ended)
+          let detailText = "";
+          if (statusInfo.code === "upcoming") {
+            detailText = `${dict.status_startsIn} ${formatDelta(statusInfo.ms)}`;
+          } else if (statusInfo.code === "live") {
+            detailText = `${dict.status_started} ${formatDelta(
+              statusInfo.ms
+            )} ${dict.ago}`;
+          } else {
+            detailText = `${dict.status_ended} ${formatDelta(
+              statusInfo.ms
+            )} ${dict.ago}`;
+          }
+
+          // доп. теги (#DNB, #HARDCORE) уже есть в ev.tags
+          const extraTags =
+            Array.isArray(ev.tags) && ev.tags.length ? ev.tags : [];
+
+          card.innerHTML = `
+            <div class="card-left">
+              <div class="card-day">${day}</div>
+              <div class="card-month">${month}</div>
+            </div>
+            <div class="card-right">
+              <div class="card-header-row">
+                <div class="card-title">${title}</div>
+                <div class="status-badge ${statusClass}">
+                  ${statusLabel}
+                </div>
+              </div>
+
+              <div class="card-tags">
+                ${
+                  typeTag
+                    ? `<span class="pill ${typeTag.className}">${typeTag.text}</span>`
+                    : ""
+                }
+                ${
+                  ev.location
+                    ? `<span class="pill pill-location">${ev.location}</span>`
+                    : ""
+                }
+                ${extraTags
+                  .map(
+                    (tag) =>
+                      `<span class="pill pill-tag">${String(tag)
+                        .replace(/_/g, " ")
+                        .toUpperCase()}</span>`
+                  )
+                  .join("")}
+              </div>
+
+              <div class="card-desc">${desc}</div>
+
+              <div class="card-footer">
+                <div class="card-footer-left">
+                  ${
+                    startTimeStr
+                      ? `${
+                          dict.startsAt
+                        } ${startTimeStr} • ${detailText}`
+                      : detailText
+                  }
+                </div>
+                <div class="card-actions">
+                  ${actionsHtml}
+                </div>
+              </div>
+
+              <div class="interest">
+                <div class="interest-counts">
+                  <span><strong>${going}</strong> ${dict.going}</span>
+                  &nbsp;·&nbsp;
+                  <span><strong>${interested}</strong> ${dict.interested}</span>
+                </div>
+                <div class="interest-buttons">
+                  <button class="btn-interest" data-action="going">
+                    ${dict.btnGoing}
+                  </button>
+                  <button class="btn-interest" data-action="interested">
+                    ${dict.btnInterested}
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+
+          card.classList.add("appear");
+          grid.appendChild(card);
+
+          // кнопки "Я пойду / Интересно"
+          const buttons = card.querySelectorAll(".btn-interest");
+          const countsEl = card.querySelector(".interest-counts");
+
+          buttons.forEach((btn) => {
+            const action = btn.getAttribute("data-action");
+            const storageKey = `event_interest_${ev.id}_${action}`;
+            if (localStorage.getItem(storageKey)) {
+              btn.classList.add("active");
+            }
+
+            btn.addEventListener("click", async () => {
+              if (localStorage.getItem(storageKey)) return;
+
+              const newStats = await sendInterest(ev.id, action);
+              if (!newStats) return;
+
+              btn.classList.add("active");
+
+              countsEl.innerHTML = `
+                <span><strong>${newStats.going || 0}</strong> ${dict.going}</span>
+                &nbsp;·&nbsp;
+                <span><strong>${newStats.interested || 0}</strong> ${
+                dict.interested
+              }</span>
+              `;
+            });
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        loader.style.display = "none";
+        empty.style.display = "block";
+        empty.textContent = i18n[currentLang].error;
+      }
+    }
+
+    // ====== Tabs ======
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        const type = tab.getAttribute("data-type");
+        loadEvents(type);
+      });
+    });
+
+    // ====== Language switch ======
+    langButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const lang = btn.dataset.lang;
+        if (!i18n[lang] || lang === currentLang) return;
+        currentLang = lang;
+        localStorage.setItem("eventsLang", currentLang);
+        applyStaticTranslations();
+        loadEvents(currentType);
+      });
+    });
+
+    // init
+    applyStaticTranslations();
+    loadEvents();
+  </script>
+</body>
+</html>
