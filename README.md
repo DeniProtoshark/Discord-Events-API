@@ -4,6 +4,14 @@ This is an API that connects events in the ds with the site page and filtering b
 npm install                    
 node server.js
 
+
+ps. 
+create the .env file yourself in the same place as the server.js and paste it there
+
+GUILD_ID= add ur server id
+DISCORD_BOT_TOKEN= add ur bot token
+PORT=3000 
+
 Sections 
 ---
   * #irl 
